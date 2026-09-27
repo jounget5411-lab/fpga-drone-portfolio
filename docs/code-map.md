@@ -2,7 +2,7 @@
 
 [프로젝트 소개로 돌아가기](../README.md)
 
-아래 링크는 공개 스냅샷 `206404b`의 구현을 안내합니다. 6월 최종 통합까지의 경험은 [문제 해결 과정](development.md), 기록된 성과는 [결과와 측정 조건](results.md)에서 읽을 수 있습니다.
+아래 링크는 공개 코드 `206404b`의 구현을 안내합니다. 6월 최종 통합까지의 경험은 [문제 해결 과정](development.md), 주요 성과는 [결과와 측정 조건](results.md)에서 읽을 수 있습니다.
 
 | 질문 | 파일 | 읽을 부분 |
 |---|---|---|
@@ -15,4 +15,4 @@
 | 시스템 전체 연결은 어디에 있나요? | [pcam_base_720p.bd](https://github.com/jounget5411-lab/capstone_drone/blob/206404b4667d665620e731083eb8de6d972c248c/hw_new_0426_cnnintegration/hw_new_backup/hw_new/hw.srcs/sources_1/bd/pcam_base_720p/pcam_base_720p.bd) | 영상 분기, VDMA, SNN, CNN, AXI 제어 |
 | 소프트웨어가 어떤 플랫폼을 참조하나요? | [vitis-comp.json](https://github.com/jounget5411-lab/capstone_drone/blob/206404b4667d665620e731083eb8de6d972c248c/new_workspace/app_component/vitis-comp.json) | 플랫폼·프로세서·OS 설정 |
 
-외부 IP와 드라이버를 포함한 전체 소스는 원본 저장소에서 확인하세요. 이 포트폴리오에는 원본 소스나 제3자 모델을 복제하지 않았으며, 원본의 권리·라이선스 조건은 해당 프로젝트 자료를 따릅니다.
+외부 IP와 드라이버를 포함한 전체 소스는 [원본 저장소](https://github.com/jounget5411-lab/capstone_drone)에서 확인할 수 있습니다.
