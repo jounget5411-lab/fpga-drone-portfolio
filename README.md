@@ -8,6 +8,12 @@
 
 카메라 입력, 영상 전처리, SNN·CNN, 프로세서 후처리와 팬틸트 제어를 Zybo Z7-20에 연결했습니다. 2026년 3~6월 외부 PC·GPU 없이 동작하는 시제품을 제작하고, 조건부 추론 구조의 전류 특성을 비교했습니다.
 
+## 실제 시연
+
+[![종합설계 장치 시연 영상](assets/demo-preview.gif)](media/demo.mp4)
+
+*평상시 감시, 드론 비행·추적, 사람이 통과하는 장면을 담은 약 55초 시연입니다. 미리보기를 누르면 전체 영상 파일로 연결됩니다. [장면 안내·추가 시연·포스터 보기](docs/demo.md)*
+
 [전체 팀 코드](https://github.com/jounget5411-lab/capstone_drone) · [설계 상세](docs/architecture.md) · [문제 해결 과정](docs/development.md) · [결과와 측정 조건](docs/results.md) · [핵심 코드 안내](docs/code-map.md)
 
 | 프로젝트 | 핵심 기술 | 다루는 문제 |
@@ -54,12 +60,12 @@
 
 | 항목 | 결과 |
 |---|---|
-| SNN 분류 정확도 | 98% |
+| SNN 분류 정확도 | 98% · 최종보고서·포스터 기재값 |
 | CNN 검출 성능 | AP@0.5 89% · 약 37 FPS |
 | FPGA 자원 사용률 | LUT 52.26% · BRAM 64.64% |
 | 추론 추가 전류 절감 | 출현율 1% 시나리오에서 약 42% |
 
-전류 절감률은 카메라·HDMI 기준 부하를 제외한 **추론 추가 전류**를 CNN 상시 실행 방식과 비교한 값입니다. 상태별 측정값과 출현율별 계산은 [결과와 측정 조건](docs/results.md)에서 볼 수 있습니다.
+전류 절감률은 상태별 측정값에 출현율을 적용한 계산으로, 카메라·HDMI 기준 부하를 제외한 **추론 추가 전류**를 CNN 상시 실행 방식과 비교한 값입니다. 모델 지표의 출처, 상태별 측정값과 출현율별 계산은 [결과와 측정 조건](docs/results.md)에서 볼 수 있습니다.
 
 ## 구현에서 집중한 부분
 
@@ -105,3 +111,5 @@ FPGA의 영상 경로는 AXI-Stream으로 연결하고, 프로세서의 C++ 애�
 ---
 
 [국민대 자율주행 프로젝트](https://github.com/jounget5411-lab/kookmin-autonomous-driving-portfolio) · [HL FMA 2025 프로젝트](https://github.com/jounget5411-lab/hlfma-2025-portfolio)
+
+[음성·조명 제어](https://github.com/jounget5411-lab/embedded-voice-lighting-portfolio) · [음원 방향·수어 번역](https://github.com/jounget5411-lab/embedded-sensor-fusion-portfolio) · [침입 감지 시제품](https://github.com/jounget5411-lab/embedded-intrusion-detection-portfolio)
