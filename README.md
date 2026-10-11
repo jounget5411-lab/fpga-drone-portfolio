@@ -1,115 +1,49 @@
-<p align="center"><img src="assets/hero.png" alt="FPGA Vision — FPGA 기반 드론 탐지·추적 종합설계" width="100%"></p>
+# FPGA 기반 드론 탐지·추적
 
-# FPGA 기반 드론 탐지·추적 종합설계
+드론이 드물게 나타나는 환경에서 **SNN으로 감시하고, 비행 후보가 잡히면 CNN으로 위치를 검출해 팬틸트로 추적**하는 시스템입니다. 카메라·영상 처리·AI 추론·제어를 Zybo Z7-20 한 보드에 연결해 외부 PC 없이 동작하는 시제품을 만들었습니다.
 
-**SNN 조건부 감시 · INT8 CNN 탐지 · FPGA SoC 통합**
+**종합설계 · 2026.03–06**
 
-**표적이 드문 감시 환경에서 SNN이 움직임을 먼저 판단하고, 후보가 나타날 때 CNN을 실행하도록 설계한 FPGA 기반 탐지·추적 프로젝트입니다.**
+`Zynq-7020` · `Verilog` · `C/C++` · `AXI/VDMA` · `SNN` · `INT8 CNN`
 
-카메라 입력, 영상 전처리, SNN·CNN, 프로세서 후처리와 팬틸트 제어를 Zybo Z7-20에 연결했습니다. 2026년 3~6월 외부 PC·GPU 없이 동작하는 시제품을 제작하고, 조건부 추론 구조의 전류 특성을 비교했습니다.
+## 전체 흐름
 
-## 실제 시연
+![카메라 영상이 SNN 감시와 조건부 CNN 검출을 거쳐 PS 후처리와 팬틸트 추적으로 이어지는 기능 흐름](assets/system-flow.svg)
 
-[![종합설계 장치 시연 영상](assets/demo-preview.gif)](media/demo.mp4)
+PL에서 영상 스트림과 반복 연산을 처리하고, PS에서 초기화·가중치 전송·검출 후처리·추적 상태를 관리합니다. 검출이 이어지지 않으면 감시 상태로 돌아갑니다.
 
-*평상시 감시, 드론 비행·추적, 사람이 통과하는 장면을 담은 약 55초 시연입니다. 미리보기를 누르면 전체 영상 파일로 연결됩니다. [장면 안내·추가 시연·포스터 보기](docs/demo.md)*
+## 시연
 
-[전체 팀 코드](https://github.com/jounget5411-lab/capstone_drone) · [설계 상세](docs/architecture.md) · [문제 해결 과정](docs/development.md) · [결과와 측정 조건](docs/results.md) · [핵심 코드 안내](docs/code-map.md)
+[드론 감시·추적 영상 · 약 55초](media/demo.mp4) · [추가 시연·장면 안내·시제품·포스터](docs/demo.md)
 
-| 프로젝트 | 핵심 기술 | 다루는 문제 |
-|---|---|---|
-| 종합설계 · 2026.03~06 | Zynq-7020 · Verilog · C/C++ · AXI · VDMA · SNN · INT8 CNN | 카메라·추론·제어를 단일 보드에 연결하고 희소 표적 환경의 평균 추론 비용 감소 |
+## 핵심 설계와 문제 해결
 
-<p align="center"><img src="assets/prototype.jpg" alt="PCam 5C 카메라와 팬틸트를 결합한 실제 프로젝트 시제품" width="520"></p>
-
-*PCam 5C 카메라, 팬틸트와 자체 제작 외장을 결합한 시제품.*
-
-## 왜 SNN과 CNN을 함께 썼나
-
-감시 영상에는 표적이 없는 시간이 길지만 CNN을 계속 실행하면 그 시간에도 연산 비용이 발생합니다. 일반 카메라의 프레임 차분으로 이벤트를 만들고, 움직임의 시간 패턴을 작은 SNN으로 먼저 판단한 뒤 CNN을 활성화하는 두 단계 구조를 선택했습니다.
-
-전체 흐름은 **카메라 → SNN 감시 → CNN 위치 검출 → PS의 박스 복원·NMS → 팬틸트 제어 → 미검출 시 감시 복귀**입니다. 아래 도해는 영상 처리·SNN 경로를 자세히 보여 줍니다.
-
-## 한눈에 보는 시스템
-
-<p align="center"><img src="assets/architecture.png" alt="카메라 영상에서 프레임 차분과 SNN 분류 결과까지 이어지는 코드 기반 구조도" width="100%"></p>
-
-영상 전체를 그대로 신경망에 전달하는 대신, **이전 프레임과 달라진 위치를 공간별로 집계하고 여러 프레임에 걸쳐 분석**합니다. 프로세서에서는 카메라와 메모리 전송을 설정하고, FPGA에서는 영상 스트림과 추론 연산을 처리합니다.
-
-| 단계 | 구현 내용 |
-|---|---|
-| 영상 입력 | OV5640 카메라와 MIPI 수신 경로, Bayer → RGB 및 감마 보정 |
-| 움직임 추출 | 160 × 90 그레이스케일 영상과 이전 프레임의 픽셀 차이를 비교 |
-| 특징 압축 | 10 × 10 픽셀 단위 집계 → 프레임당 144개 특징 → 3비트 양자화 |
-| 시간 정보 처리 | 20프레임 순환 버퍼를 이용한 슬라이딩 윈도우 |
-| 하드웨어 추론 | 144 → 8 → 2 구조의 SNN과 LIF 뉴런 상태 연산 |
-| 결과 확인 | AXI GPIO 결과 읽기, UART 출력 및 원본·차분 영상 덤프 |
-
-## 개발 중 해결한 문제
-
-| 문제 | 원인을 좁힌 방법 | 적용한 해결 |
-|---|---|---|
-| 화면이 계속 검게 나옴 | UART 초기화, 합성 소스 포함 여부, AXI 프레임 신호를 따로 관찰 | VDMA 설정·누락된 RTL·첫 픽셀 동기 신호를 각각 수정 |
-| 높은 학습 정확도와 실제 영상 성능이 다름 | 서로 겹치는 20프레임 샘플이 학습·평가 양쪽에 들어간 것을 확인 | 동영상 파일 단위로 분할하고 독립 영상 평가로 변경 |
-| 정지 영상도 Fly로 판단 | 카메라를 분리한 all-zero RTL 시험으로 재현 | 임계값의 signed 비트폭을 확대하고 동률 판정을 명시 |
-| CNN 통합 중 FPGA 자원 초과 | 모델 크기와 메모리의 BRAM/LUTRAM 배치를 분리해 분석 | 대용량 activation 메모리의 합성 형태와 초기화 경로를 수정·재확인 |
-
-문제의 원인을 좁히고 수정 결과를 확인한 과정은 [문제 해결 과정](docs/development.md)에 정리했습니다.
+- **표적이 있을 때 정밀 탐지:** 프레임 차분을 144개 특징으로 압축하고 20프레임의 움직임을 SNN으로 판단합니다. 후보가 나타나면 CNN을 실행해 위치를 구합니다.
+- **하드웨어 연산과 소프트웨어 후처리 연결:** CNN의 RAW 출력을 PS에서 박스로 복원하고 NMS를 적용한 뒤 추적 명령으로 연결했습니다. 런타임 가중치 로드와 제어에는 AXI 인터페이스를 사용했습니다.
+- **통합 문제를 단계별로 확인:** 검은 화면 문제를 초기화 로그·영상 메모리·프레임 동기로 나눠 추적했습니다. 정지 영상의 오분류는 all-zero RTL 시험으로 재현하고 signed 비트폭과 동률 판정을 점검했습니다.
 
 ## 주요 결과
 
 | 항목 | 결과 |
 |---|---|
-| SNN 분류 정확도 | 98% · 최종보고서·포스터 기재값 |
-| CNN 검출 성능 | AP@0.5 89% · 약 37 FPS |
-| FPGA 자원 사용률 | LUT 52.26% · BRAM 64.64% |
-| 추론 추가 전류 절감 | 출현율 1% 시나리오에서 약 42% |
+| SNN 분류 | 정확도 98% · 최종보고서·포스터 기재값 |
+| CNN 검출 | AP@0.5 89% · 처리율 약 37 FPS |
+| FPGA 자원 | LUT 52.26% · BRAM 64.64% |
+| 조건부 추론 | 출현율 1% 시나리오에서 **추론 추가 전류 약 42% 절감** |
 
-전류 절감률은 상태별 측정값에 출현율을 적용한 계산으로, 카메라·HDMI 기준 부하를 제외한 **추론 추가 전류**를 CNN 상시 실행 방식과 비교한 값입니다. 모델 지표의 출처, 상태별 측정값과 출현율별 계산은 [결과와 측정 조건](docs/results.md)에서 볼 수 있습니다.
+전류 절감률은 카메라·HDMI 기준 부하를 제외한 추론 증가분의 비교입니다. 상태별 측정값에 출현율을 적용한 계산과 모델 평가 범위는 [결과와 측정 조건](docs/results.md)에 정리했습니다.
 
-## 구현에서 집중한 부분
+## 상세 자료와 코드
 
-### 영상 처리와 제어 소프트웨어의 경계 설계
+| 보고 싶은 내용 | 바로가기 |
+|---|---|
+| 영상·SNN·CNN·PS/PL 인터페이스 | [설계 구조](docs/architecture.md) |
+| 검은 화면·데이터 분할·정지 영상·자원 문제 | [개발과 문제 해결](docs/development.md) |
+| 성능 지표·측정값·절감률 계산 | [결과와 측정 조건](docs/results.md) |
+| 초기화·RTL·추론 코드를 읽는 순서 | [핵심 코드 안내](docs/code-map.md) |
+| Vivado·Vitis 구성과 버전별 재현 범위 | [개발 환경과 실행 안내](docs/reproduction.md) |
+| 원본 프로젝트 | [팀 코드 저장소](https://github.com/jounget5411-lab/capstone_drone) |
 
-FPGA의 영상 경로는 AXI-Stream으로 연결하고, 프로세서의 C++ 애플리케이션은 카메라 초기화·VDMA 설정·가중치 전송을 담당하도록 구성했습니다. 영상 데이터와 제어 명령의 통로를 나눠 각 단계의 상태를 확인할 수 있게 했습니다.
+공개 코드 `206404b`의 영상·SNN 경로와 이후 6월 최종 통합 내용을 구분해 설명했습니다. 버전 관계는 실행 안내에서 확인할 수 있습니다.
 
-[main.cc](https://github.com/jounget5411-lab/capstone_drone/blob/206404b4667d665620e731083eb8de6d972c248c/new_workspace/app_component/src/main.cc) · [Top.v](https://github.com/jounget5411-lab/capstone_drone/blob/206404b4667d665620e731083eb8de6d972c248c/hw_new_0426_cnnintegration/CORE_IP/src/Top.v)
-
-### 움직임을 공간과 시간의 특징으로 표현
-
-160 × 90 영상에서 움직임 픽셀을 16 × 9개 영역으로 집계합니다. 집계값을 3비트로 양자화하고, 20프레임의 특징을 순환 버퍼에 저장합니다. 프레임 한 장의 모양뿐 아니라 연속된 움직임을 추론 입력으로 구성한 것이 핵심입니다.
-
-[feature_extractor.v](https://github.com/jounget5411-lab/capstone_drone/blob/206404b4667d665620e731083eb8de6d972c248c/hw_new_0426_cnnintegration/CORE_IP/src/feature_extractor.v) · [snn_top.v](https://github.com/jounget5411-lab/capstone_drone/blob/206404b4667d665620e731083eb8de6d972c248c/hw_new_0426_cnnintegration/CORE_IP/src/snn_top.v)
-
-### 연산 단계를 나누고 중간 결과를 관찰
-
-프레임 차분 출력에 레지스터 단계를 두고, SNN의 MAC 연산과 LIF 갱신도 여러 상태로 나눠 조합 경로를 분산했습니다.
-
-디버깅 시에는 UART 명령으로 원본 그레이스케일과 차분 영상을 내보내고, 분류 결과와 두 출력 뉴런의 스파이크 수를 확인할 수 있습니다.
-
-[frame_diff.v](https://github.com/jounget5411-lab/capstone_drone/blob/206404b4667d665620e731083eb8de6d972c248c/hw_new_0426_cnnintegration/hw_new_backup/hw_new/hw.srcs/sources_1/new/frame_diff.v) · [snn_top.v](https://github.com/jounget5411-lab/capstone_drone/blob/206404b4667d665620e731083eb8de6d972c248c/hw_new_0426_cnnintegration/CORE_IP/src/snn_top.v)
-
-### CNN과 후처리를 연결하는 인터페이스
-
-그레이스케일 영상과 SNN 결과 플래그를 입력받는 `dronet_accel_axi`에 CNN 연산기, 프레임 버퍼와 AXI 제어 인터페이스를 구성했습니다. 6월 최종 통합에서는 AXI-Lite로 가중치를 로드하고, 20 × 11 × 6 RAW 출력을 PS에서 박스로 복원한 뒤 NMS와 추적 제어로 연결했습니다.
-
-[pcam_base_720p.bd](https://github.com/jounget5411-lab/capstone_drone/blob/206404b4667d665620e731083eb8de6d972c248c/hw_new_0426_cnnintegration/hw_new_backup/hw_new/hw.srcs/sources_1/bd/pcam_base_720p/pcam_base_720p.bd) · [설계 상세](docs/architecture.md)
-
-## 코드를 읽는 순서
-
-1. **전체 흐름:** [main.cc](https://github.com/jounget5411-lab/capstone_drone/blob/206404b4667d665620e731083eb8de6d972c248c/new_workspace/app_component/src/main.cc)에서 초기화·가중치 로드·결과 확인을 살펴봅니다.
-2. **하드웨어 연결:** [Top.v](https://github.com/jounget5411-lab/capstone_drone/blob/206404b4667d665620e731083eb8de6d972c248c/hw_new_0426_cnnintegration/CORE_IP/src/Top.v)에서 특징 추출기와 SNN의 입출력을 확인합니다.
-3. **핵심 연산:** [feature_extractor.v](https://github.com/jounget5411-lab/capstone_drone/blob/206404b4667d665620e731083eb8de6d972c248c/hw_new_0426_cnnintegration/CORE_IP/src/feature_extractor.v)와 [snn_top.v](https://github.com/jounget5411-lab/capstone_drone/blob/206404b4667d665620e731083eb8de6d972c248c/hw_new_0426_cnnintegration/CORE_IP/src/snn_top.v)에서 특징 버퍼와 추론 상태 머신을 확인합니다.
-4. **보드 수준 연결:** [pcam_base_720p.bd](https://github.com/jounget5411-lab/capstone_drone/blob/206404b4667d665620e731083eb8de6d972c248c/hw_new_0426_cnnintegration/hw_new_backup/hw_new/hw.srcs/sources_1/bd/pcam_base_720p/pcam_base_720p.bd)에서 카메라·메모리·추론·HDMI 경로를 확인합니다.
-
-## 문서와 코드 출처
-
-이 저장소는 프로젝트 설명과 설계 도해를 정리한 개인 포트폴리오입니다. 전체 팀 코드는 [기존 저장소](https://github.com/jounget5411-lab/capstone_drone)에 보관되어 있습니다. 코드 설명은 `206404b` 커밋, 개발 과정·최종 결과 설명은 프로젝트 수행 기록과 개발 요약을 기준으로 작성했습니다.
-
-보드·도구 구성과 초기화 순서는 [개발 환경과 실행 안내](docs/reproduction.md)에 정리했습니다.
-
----
-
-[국민대 자율주행 프로젝트](https://github.com/jounget5411-lab/kookmin-autonomous-driving-portfolio) · [HL FMA 2025 프로젝트](https://github.com/jounget5411-lab/hlfma-2025-portfolio)
-
-[음성·조명 제어](https://github.com/jounget5411-lab/embedded-voice-lighting-portfolio) · [음원 방향·수어 번역](https://github.com/jounget5411-lab/embedded-sensor-fusion-portfolio) · [침입 감지 시제품](https://github.com/jounget5411-lab/embedded-intrusion-detection-portfolio)
+[← 전체 프로젝트 포트폴리오](https://github.com/jounget5411-lab/portfolio)

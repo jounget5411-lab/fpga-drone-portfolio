@@ -2,6 +2,7 @@
 
 - `hero.svg` / `hero.png`: 프로젝트 소개용 개념 이미지
 - `architecture.svg` / `architecture.png`: 영상 처리·SNN 추론 구조
+- `system-flow.svg`: SNN 감시·조건부 CNN 검출·PS 후처리·팬틸트 제어를 연결한 전체 기능 흐름
 - `prototype.jpg`: 팬틸트 시제품 사진
 - `detection-comparison.jpg`: 소프트웨어·INT8 하드웨어 검출 박스 비교 화면
 - `current-measurement.png`: 상태별 입력 전류 비교 그래프

@@ -23,6 +23,10 @@
 
 모델 성능과 조건부 추론의 전류 비교는 [결과와 측정 조건](results.md)에 정리했습니다.
 
+## 시제품
+
+![카메라와 팬틸트를 결합한 종합설계 시제품](../assets/prototype.jpg)
+
 ## 종합설계 포스터
 
 [![종합설계 포스터](../assets/poster.jpg)](../assets/poster.jpg)

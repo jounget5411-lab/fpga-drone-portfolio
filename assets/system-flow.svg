@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1120" height="370" viewBox="0 0 1120 370" role="img" aria-labelledby="title desc">
+  <title id="title">FPGA 드론 탐지·추적의 전체 기능 흐름</title>
+  <desc id="desc">영상 전처리에서 움직임 특징을 SNN에 전달하고, 그레이스케일 영상은 CNN에 전달한다. SNN의 비행 후보 판정에 따라 CNN을 활성화한다. CNN 출력은 PS 후처리와 팬틸트 제어로 이어진다.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#277c9c"/></marker>
+    <marker id="control" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10Z" fill="#24856e"/></marker>
+  </defs>
+  <rect width="1120" height="370" rx="12" fill="#f7f9fc"/>
+  <rect x="210" y="38" width="690" height="300" rx="16" fill="#edf3f9" stroke="#cfdae6"/>
+  <g font-family="Segoe UI, Malgun Gothic, Arial, sans-serif" fill="#172b44">
+    <text x="234" y="67" font-size="17" font-weight="600">Zybo Z7-20 · PL / PS</text>
+    <g fill="#fff" stroke="#b7cadb" stroke-width="1.4">
+      <rect x="24" y="90" width="150" height="80" rx="10"/>
+      <rect x="238" y="90" width="180" height="80" rx="10"/>
+      <rect x="460" y="90" width="190" height="80" rx="10" stroke="#24856e"/>
+      <rect x="460" y="235" width="190" height="80" rx="10" stroke="#24856e"/>
+      <rect x="690" y="235" width="180" height="80" rx="10"/>
+      <rect x="930" y="235" width="165" height="80" rx="10"/>
+    </g>
+    <g text-anchor="middle">
+      <text x="99" y="118" font-size="19" font-weight="600">카메라</text>
+      <text x="99" y="146" font-size="15">PCam 5C</text>
+      <text x="328" y="115" font-size="19" font-weight="600">영상 전처리 · PL</text>
+      <text x="328" y="138" font-size="14">축소 · 그레이스케일</text>
+      <text x="328" y="158" font-size="14">프레임 차분 · 특징 추출</text>
+      <text x="555" y="115" font-size="19" font-weight="600">SNN 감시 · PL</text>
+      <text x="555" y="138" font-size="14">20프레임 특징 → 비행 후보</text>
+      <text x="555" y="158" font-size="14">LIF 144 → 8 → 2</text>
+      <text x="555" y="263" font-size="19" font-weight="600">CNN 위치 검출 · PL</text>
+      <text x="555" y="288" font-size="15">INT8 연산 · RAW 출력</text>
+      <text x="780" y="260" font-size="19" font-weight="600">후처리·제어 · PS</text>
+      <text x="780" y="283" font-size="15">박스 복원 · NMS</text>
+      <text x="780" y="304" font-size="14">C/C++ 추적 상태</text>
+      <text x="1012" y="263" font-size="19" font-weight="600">팬틸트 추적</text>
+      <text x="1012" y="288" font-size="15">서보모터 제어</text>
+    </g>
+    <text x="340" y="215" font-size="14" fill="#277c9c">그레이스케일 영상</text>
+    <text x="573" y="199" font-size="14" fill="#24856e">비행 후보 판정</text>
+    <text x="573" y="219" font-size="14" fill="#24856e">→ CNN 활성화</text>
+    <text x="234" y="356" font-size="13" fill="#546c84">기능 흐름 요약 · DDR/HDMI 경로와 AXI 세부 연결은 설계 문서에 수록</text>
+  </g>
+  <g fill="none" stroke="#277c9c" stroke-width="2" marker-end="url(#arrow)">
+    <path d="M174 130H235"/>
+    <path d="M418 130H457"/>
+    <path d="M328 170V275H457"/>
+    <path d="M650 275H687"/>
+    <path d="M870 275H927"/>
+  </g>
+  <path d="M555 170V232" fill="none" stroke="#24856e" stroke-width="2" stroke-dasharray="5 4" marker-end="url(#control)"/>
+</svg>
